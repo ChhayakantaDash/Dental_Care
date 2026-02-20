@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AppointmentStatus {
+  PENDING_PAYMENT
+  PAYMENT_SUBMITTED
+  CONFIRMED
+  ARRIVED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  EXPIRED
+}
+
+enum TokenStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+model User {
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  phone          String?
+  password       String
+  role           Role            @default(PATIENT)
+  avatar         String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  doctor         Doctor?
+  appointments   Appointment[]   @relation("PatientAppointments")
+  payments       Payment[]
+  medicalRecords MedicalRecord[]
+}
+
+model Doctor {
+  id              String               @id @default(cuid())
+  userId          String               @unique
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization  String
+  qualification   String
+  experience      Int
+  consultationFee Decimal              @db.Decimal(10, 2)
+  bio             String?
+
+  availability    DoctorAvailability[]
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model DoctorAvailability {
+  id           String  @id @default(cuid())
+  doctorId     String
+  doctor       Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek    Int
+  startTime    String
+  endTime      String
+  slotDuration Int     @default(30)
+  isActive     Boolean @default(true)
+}
+
+model Appointment {
+  id        String            @id @default(cuid())
+  patientId String
+  patient   User              @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor            @relation(fields: [doctorId], references: [id])
+  date      DateTime
+  startTime String
+  endTime   String
+  status    AppointmentStatus @default(PENDING_PAYMENT)
+  tokenNumber Int?
+  tokenStatus TokenStatus?
+  notes     String?
+
+  payment      Payment?
+  prescription Prescription?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  appointmentId   String        @unique
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  amount          Decimal       @db.Decimal(10, 2)
+  screenshotUrl   String?
+  utrNumber       String?
+  status          PaymentStatus @default(PENDING)
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  rejectionReason String?
+  expiresAt       DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Prescription {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  doctorId      String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  diagnosis     String
+  medications   Json
+  instructions  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MedicalRecord {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      User     @relation(fields: [patientId], references: [id])
+  visitDate    DateTime
+  doctorName   String
+  diagnosis    String
+  prescription String?
+  notes        String?
+  attachments  String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClinicSettings {
+  id         String   @id @default(cuid())
+  clinicName String   @default("Dental Clinic")
+  address    String?
+  phone      String?
+  email      String?
+  upiId      String?
+  qrCodeUrl  String?
+  logo       String?
+  about      String?
+  heroImage  String?
+
+  updatedAt DateTime @updatedAt
+}
+
+model Holiday {
+  id     String   @id @default(cuid())
+  date   DateTime
+  reason String?
+}
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String
+  caption   String?
+  category  String?
+  createdAt DateTime @default(now())
+}
