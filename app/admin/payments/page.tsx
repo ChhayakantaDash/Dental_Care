@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { PaymentStatus } from "@/app/generated/prisma/enums";
+import { PaymentStatus } from "@/generated/prisma/enums";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

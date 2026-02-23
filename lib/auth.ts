@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
-import type { Role } from "@/app/generated/prisma/enums";
+import type { Role } from "@/generated/prisma/enums";
 
 export { createToken, verifyToken } from "./jwt";
 export type { SessionUser } from "./jwt";

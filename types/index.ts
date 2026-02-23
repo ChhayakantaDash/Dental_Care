@@ -1,4 +1,4 @@
-export type { Role, AppointmentStatus, PaymentStatus } from "@/app/generated/prisma/enums";
+export type { Role, AppointmentStatus, PaymentStatus } from "@/generated/prisma/enums";
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
